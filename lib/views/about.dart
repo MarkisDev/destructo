@@ -208,8 +208,9 @@ class AboutScreen extends StatelessWidget {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {},
-                        child: Container(
+                        onTap: () async {
+                          await _launchURL('https://dribble.com/PolyBot');
+                        },                        child: Container(
                           padding: EdgeInsets.symmetric(
                               vertical: 15, horizontal: 15),
                           margin: EdgeInsets.fromLTRB(0, 15, 15, 0),

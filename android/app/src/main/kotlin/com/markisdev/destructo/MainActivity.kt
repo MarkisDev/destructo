@@ -1,4 +1,4 @@
-package com.example.destructo
+package com.markisdev.destructo
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
