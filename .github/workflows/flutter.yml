@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - next
-  workflow_dispatch:
+  workflow_dispatch: # This enables manual triggering
 
 jobs:
   build-android:
@@ -25,35 +25,28 @@ jobs:
         with:
           channel: stable
 
-      - name: Get Previous Release Version
-        id: get_previous_release
-        run: echo "::set-output name=version::$(git describe --tags --abbrev=0)"
-
-      - name: Get Current Version
-        id: get_current_version
-        run: echo "::set-output name=version::$(cat pubspec.yaml | grep version: | awk '{print $2}')"
-
-      - name: Compare Versions
-        id: compare_versions
-        run: echo "::set-output name=is_different::${{ steps.get_previous_release.outputs.version != steps.get_current_version.outputs.version }}"
-
       - name: Build Flutter app for Android
-        if: steps.compare_versions.outputs.is_different == 'true' || steps.get_previous_release.outputs.version == ''
         run: flutter build apk
 
       - name: Create Release
-        if: steps.compare_versions.outputs.is_different == 'true' || steps.get_previous_release.outputs.version == ''
+        id: create_release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir release_assets
-          mv build/app/outputs/apk/release/app-release.apk release_assets/
-
-      - name: Upload Release Asset
-        if: steps.compare_versions.outputs.is_different == 'true' || steps.get_previous_release.outputs.version == ''
-        uses: actions/upload-release-asset@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release_assets/app-release.apk
-          asset_name: app-release.apk
-          asset_content_type: application/vnd.android.package-archive
+          tag_name: v1.0.0 # Update this with your desired version number
+          release_name: Release v1.0.0 # Update this with your desired release name
+          draft: false
+          prerelease: false
+
+      - name: Upload APK
+        id: upload_apk
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk # Update the path to your APK
+
+      - name: Add APK link to Release Description
+        run: echo "Download the APK [here](https://github.com/${{ github.repository }}/releases/download/${{ steps.create_release.outputs.id }}/app-release.apk)" >> $GITHUB_EVENT_PATH
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
